@@ -101,7 +101,7 @@ export default function Academia() {
           <div>
             <h3 className="text-2xl font-bold text-indigo-900 mb-3">Preparación para el Conservatorio</h3>
             <p className="text-indigo-950/80 leading-relaxed md:text-lg">
-              Formación específica orientada a la introducción en las enseñanzas oficiales del <span className="font-semibold">Conservatorio de Música de Canarias</span>. Preparamos a nuestros alumnos más avanzados para superar las pruebas de acceso con éxito, dotándolos del nivel técnico y teórico requerido.
+              Formación específica orientada a la introducción en las enseñanzas oficiales del <span className="font-semibold">Conservatorio de Música de Canarias</span>. Preparamos a nuestros alumnos para superar las pruebas de acceso con éxito, dotándolos del nivel técnico y teórico requerido.
             </p>
           </div>
         </div>
