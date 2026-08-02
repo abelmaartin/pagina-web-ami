@@ -7,7 +7,7 @@ generator client {
 // Para desarrollo local es muy cómodo usar SQLite. 
 // Más adelante, al subirlo a producción, bastará con cambiarlo a "postgresql" o "mysql".
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // --- TABLA DE EVENTOS ---
