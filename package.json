@@ -9,17 +9,24 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.2.11",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "@libsql/client": "^0.17.4",
+    "@prisma/adapter-libsql": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "@vercel/blob": "^2.6.1",
+    "next": "^16.2.12",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "resend": "^6.18.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.11",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^10.8.0",
+    "eslint-config-next": "^16.2.12",
+    "prisma": "^7.9.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

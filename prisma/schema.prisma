@@ -1,0 +1,55 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Para desarrollo local es muy cómodo usar SQLite. 
+// Más adelante, al subirlo a producción, bastará con cambiarlo a "postgresql" o "mysql".
+datasource db {
+  provider = "sqlite"
+}
+
+// --- TABLA DE EVENTOS ---
+model Evento {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  fecha       DateTime
+  lugar       String
+  tipo        String   // Ej: "Concierto", "Procesión", "Academia"
+  descripcion String
+  color       String?  // Opcional: para guardar las clases de Tailwind (ej. "bg-indigo-50...")
+  creadoEn    DateTime @default(now())
+  actualizado DateTime @updatedAt
+}
+
+// --- TABLA DE NOTICIAS (BLOG) ---
+// --- TABLA DE NOTICIAS ---
+model Noticia {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  extracto    String   // Un resumen corto para las tarjetas de la portada
+  contenido   String   // El texto completo o cuerpo de la noticia
+  imagenUrl   String?  // Foto opcional para la noticia
+  fecha       DateTime @default(now())
+  creadoEn    DateTime @default(now())
+}
+
+// --- TABLAS DE GALERÍA (Relación 1 a N) ---
+// --- TABLA DE ÁLBUMES ---
+model Album {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  fecha       DateTime
+  portadaUrl  String?  // Aquí guardaremos la URL de Vercel Blob
+  fotos       Foto[]   // Relación: Un álbum tiene muchas fotos
+  creadoEn    DateTime @default(now())
+}
+
+// --- TABLA DE FOTOS ---
+model Foto {
+  id          Int      @id @default(autoincrement())
+  url         String   // Aquí guardaremos la URL de Vercel Blob
+  albumId     Int
+  album       Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+}
