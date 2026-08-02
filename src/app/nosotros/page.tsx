@@ -67,7 +67,7 @@ export default function Nosotros() {
               className="object-cover"
               sizes="100vw"
               priority /* Le da prioridad de carga al ser una foto tan grande e importante */
-            />
+            /> 
           </div>
 
         </div>
