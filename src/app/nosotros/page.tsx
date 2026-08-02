@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function Nosotros() {
   return (
     <main className="flex flex-col min-h-screen bg-white">
@@ -30,11 +32,15 @@ export default function Nosotros() {
             </div>
           </div>
 
-          {/* Espacio para foto histórica (marcador visual) */}
-          <div className="bg-slate-100 aspect-square md:aspect-[4/3] rounded-3xl flex items-center justify-center border border-slate-200 shadow-inner p-8 text-center">
-            <span className="text-slate-400 font-medium">
-              [ Aquí puedes colocar una foto antigua o de algún momento histórico ]
-            </span>
+          {/* Foto histórica (Ajustada para ser vertical) */}
+          <div className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-3xl overflow-hidden shadow-xl border border-slate-100">
+            <Image 
+              src="/antigua.jpeg"
+              alt="Foto histórica de la Agrupación Musical Isorana"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-700"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
           </div>
 
         </div>
@@ -53,10 +59,15 @@ export default function Nosotros() {
           </div>
 
           {/* Contenedor panorámico para la foto de grupo */}
-          <div className="w-full bg-slate-200 aspect-[16/9] md:aspect-[21/9] rounded-3xl flex items-center justify-center border border-slate-300 shadow-inner overflow-hidden p-8 text-center">
-            <span className="text-slate-500 font-medium">
-              [ Aquí irá la gran fotografía panorámica de toda la banda con sus componentes ]
-            </span>
+          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-3xl overflow-hidden shadow-xl border border-slate-200">
+            <Image 
+              src="/banda.jpeg"
+              alt="Fotografía panorámica de la Agrupación Musical Isorana"
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority /* Le da prioridad de carga al ser una foto tan grande e importante */
+            />
           </div>
 
         </div>
