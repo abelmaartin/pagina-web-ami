@@ -53,3 +53,27 @@ model Foto {
   albumId     Int
   album       Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
 }
+
+model Preinscripcion {
+  id              Int      @id @default(autoincrement())
+  nombre          String
+  apellidos       String
+  fechaNacimiento String
+  telefono        String
+  email           String
+  
+  // Datos del tutor si es menor
+  esMenor         Boolean  @default(false)
+  tutorNombre     String?
+  tutorDni        String?
+  tutorTelefono   String?
+  
+  // Preferencias
+  instrumento     String?
+  experiencia     String?
+  observaciones   String?
+  
+  // Gestión interna de la academia
+  estado          String   @default("PENDIENTE") // PENDIENTE, CONTACTADO, MATRICULADO, RECHAZADO
+  fechaSolicitud  DateTime @default(now())
+}

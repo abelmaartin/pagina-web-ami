@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { registrarPreinscripcion } from '@/actions/preinscripciones';
 
 export default function Academia() {
   // Estado para controlar si el alumno es menor de edad
@@ -19,11 +20,29 @@ export default function Academia() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí irá la lógica para enviar los datos a tu backend o por email
-    console.log("Datos de inscripción enviados:", formData, "Es menor:", esMenor);
-    alert("¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.");
+    
+    // Llamamos a la función del servidor directamente, pasándole los datos
+    const respuesta = await registrarPreinscripcion({
+      ...formData,
+      esMenor
+    });
+
+    if (respuesta.success) {
+      alert("¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.");
+      
+      // Limpiamos el formulario
+      setFormData({
+        nombre: '', apellidos: '', fechaNacimiento: '',
+        telefono: '', email: '',
+        tutorNombre: '', tutorDni: '', tutorTelefono: '',
+        instrumento: '', experiencia: 'No', observaciones: ''
+      });
+      setEsMenor(false);
+    } else {
+      alert("Hubo un problema al enviar la solicitud. Por favor, inténtalo de nuevo.");
+    }
   };
 
   return (
