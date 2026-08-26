@@ -47,6 +47,12 @@ export default function AdminLayout({
           >
             📸 Galería
           </Link>
+          <Link 
+            href="/admin/inscripciones"
+            className="block px-4 py-3 rounded-lg hover:bg-indigo-600 transition-colors"
+          >
+            👥​ Inscripciones
+          </Link>
         </nav>
       </aside>
 

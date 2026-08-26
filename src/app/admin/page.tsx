@@ -58,6 +58,12 @@ export default async function AdminPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-2">Galería</h2>
             <p className="text-gray-500 text-sm">Añade fotos de nuestras actuaciones.</p>
           </Link>
+
+          <Link href="/admin/inscripciones" className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 text-left">
+            <div className="text-4xl mb-3">👥​</div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Inscripciones</h2>
+            <p className="text-gray-500 text-sm">Accede a las solicitudes de incripciones</p>
+          </Link>
         </div>
       </div>
     </main>
