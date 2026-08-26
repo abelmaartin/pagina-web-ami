@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 
 // Inicializamos Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY_INSCRIPCION);
 
 export async function registrarPreinscripcion(data: any) {
   try {
