@@ -56,3 +56,45 @@ export async function registrarPreinscripcion(data: any) {
     return { success: false, error: 'Hubo un error al procesar tu solicitud.' };
   }
 }
+
+// ... (código que ya tienes de registrarPreinscripcion)
+
+// Obtener todas las preinscripciones ordenadas de más nuevas a más antiguas
+export async function obtenerPreinscripciones() {
+  try {
+    const inscripciones = await prisma.preinscripcion.findMany({
+      orderBy: { fechaSolicitud: 'desc' }
+    });
+    return inscripciones;
+  } catch (error) {
+    console.error('Error al obtener preinscripciones:', error);
+    return [];
+  }
+}
+
+// Cambiar el estado (ej: de PENDIENTE a CONTACTADO)
+export async function actualizarEstadoInscripcion(id: number, nuevoEstado: string) {
+  try {
+    await prisma.preinscripcion.update({
+      where: { id },
+      data: { estado: nuevoEstado }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Error al actualizar estado:', error);
+    return { success: false, error: 'No se pudo actualizar el estado' };
+  }
+}
+
+// Eliminar una solicitud
+export async function eliminarPreinscripcion(id: number) {
+  try {
+    await prisma.preinscripcion.delete({
+      where: { id }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Error al eliminar:', error);
+    return { success: false, error: 'No se pudo eliminar' };
+  }
+}
