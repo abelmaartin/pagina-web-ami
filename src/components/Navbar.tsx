@@ -50,6 +50,9 @@ export default function Navbar() {
             <Link href="/noticias" className="text-slate-600 hover:text-indigo-600 px-2 py-2 text-sm font-medium transition-colors">
               Noticias
             </Link>
+            <Link href="/inscripcion" className="text-slate-600 hover:text-indigo-600 px-2 py-2 text-sm font-medium transition-colors">
+              Inscríbete
+            </Link>
           </div>
 
           {/* BOTÓN DE CONTACTO (Escritorio) - Cambiado a lg:flex */}
