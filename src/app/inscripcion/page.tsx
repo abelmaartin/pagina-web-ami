@@ -1,15 +1,46 @@
+"use client";
+
+import { useState } from 'react';
 import Link from 'next/link';
 
 export default function Academia() {
+  // Estado para controlar si el alumno es menor de edad
+  const [esMenor, setEsMenor] = useState(false);
+  
+  // Estado para guardar todos los datos del formulario
+  const [formData, setFormData] = useState({
+    nombre: '', apellidos: '', fechaNacimiento: '',
+    telefono: '', email: '',
+    tutorNombre: '', tutorDni: '', tutorTelefono: '',
+    instrumento: '', experiencia: 'No', observaciones: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aquí irá la lógica para enviar los datos a tu backend o por email
+    console.log("Datos de inscripción enviados:", formData, "Es menor:", esMenor);
+    alert("¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.");
+  };
+
   return (
     <main className="flex flex-col min-h-screen bg-white">
       
       {/* --- CABECERA DE LA PÁGINA --- */}
       <section className="bg-slate-900 text-white py-24 px-4 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">Escuela de Música</h1>
-        <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          Formamos a los músicos del mañana. Descubre nuestra oferta educativa para todas las edades y prepárate para dar el salto musical.
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">Inscripción</h1>
+        <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed mb-8">
+          Descubre nuestra oferta educativa. Si ya lo tienes claro, rellena el formulario de preinscripción y nos pondremos en contacto contigo a la mayor brevedad posible.
         </p>
+        <a 
+          href="#formulario-inscripcion" 
+          className="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+        >
+          Ir al formulario ↓
+        </a>
       </section>
 
       {/* --- SECCIÓN: NUESTRA OFERTA EDUCATIVA --- */}
@@ -86,7 +117,6 @@ export default function Academia() {
 
         {/* 5. Novedad: Preparación Conservatorio */}
         <div className="relative bg-gradient-to-r from-indigo-50 to-purple-50 p-8 md:p-10 rounded-3xl border border-indigo-100 shadow-sm overflow-hidden flex flex-col md:flex-row gap-8 items-center text-center md:text-left">
-          {/* Etiqueta Novedad */}
           <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider">
             Novedad este curso
           </div>
@@ -105,13 +135,11 @@ export default function Academia() {
             </p>
           </div>
         </div>
-
       </section>
 
-      {/* --- SECCIÓN: INSTRUMENTOS (Mantenida igual porque coincide con Viento y Percusión) --- */}
+      {/* --- SECCIÓN: INSTRUMENTOS --- */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-t border-slate-100">
         <div className="max-w-6xl mx-auto">
-          
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-800 mb-4">Especialidades Instrumentales</h2>
             <div className="w-16 h-1.5 bg-indigo-500 mx-auto rounded-full mb-8"></div>
@@ -151,22 +179,166 @@ export default function Academia() {
               </ul>
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* --- SECCIÓN: CTA (Llamada a la acción) --- */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-indigo-600 text-white text-center">
+      {/* --- SECCIÓN: FORMULARIO DE INSCRIPCIÓN --- */}
+      <section id="formulario-inscripcion" className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 md:p-12">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-800 mb-4">Formulario de Preinscripción</h2>
+            <p className="text-slate-600">
+              Completa tus datos y contactaremos contigo para formalizar la matrícula y resolver dudas.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            
+            {/* Bloque 1: Datos del Alumno */}
+            <div>
+              <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">1. Datos del Alumno</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nombre *</label>
+                  <input type="text" name="nombre" required value={formData.nombre} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" 
+                    placeholder="Ej: Laura" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Apellidos *</label>
+                  <input type="text" name="apellidos" required value={formData.apellidos} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Nacimiento *</label>
+                  <input type="date" name="fechaNacimiento" required value={formData.fechaNacimiento} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bloque 2: Datos de Contacto */}
+            <div>
+              <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">2. Información de Contacto</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono *</label>
+                  <input type="tel" name="telefono" required value={formData.telefono} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico *</label>
+                  <input type="email" name="email" required value={formData.email} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                </div>
+              </div>
+            </div>
+
+            {/* Casilla Menor de Edad */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                id="menorEdad" 
+                checked={esMenor} 
+                onChange={(e) => setEsMenor(e.target.checked)}
+                className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+              />
+              <label htmlFor="menorEdad" className="font-medium text-slate-700 cursor-pointer">
+                El alumno es menor de edad
+              </label>
+            </div>
+
+            {/* Bloque 3: Datos del Tutor (Oculto por defecto) */}
+            {esMenor && (
+              <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 animate-fade-in">
+                <h3 className="text-lg font-semibold text-indigo-900 border-b border-indigo-200 pb-2 mb-6">Datos del Padre, Madre o Tutor Legal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Nombre y Apellidos del Tutor *</label>
+                    <input type="text" name="tutorNombre" required={esMenor} value={formData.tutorNombre} onChange={handleChange}
+                      className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">DNI / NIE *</label>
+                    <input type="text" name="tutorDni" required={esMenor} value={formData.tutorDni} onChange={handleChange}
+                      className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono de Contacto (Tutor) *</label>
+                    <input type="tel" name="tutorTelefono" required={esMenor} value={formData.tutorTelefono} onChange={handleChange}
+                      className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bloque 4: Preferencias Musicales */}
+            <div>
+              <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">3. Preferencias Musicales</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Instrumento de Interés</label>
+                  <select name="instrumento" value={formData.instrumento} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white"
+                  >
+                    <option value="">Aún no lo sé / Música y Movimiento</option>
+                    <optgroup label="Viento Madera">
+                      <option value="Flauta Travesera">Flauta Travesera</option>
+                      <option value="Clarinete">Clarinete</option>
+                      <option value="Saxofón">Saxofón</option>
+                      <option value="Oboe">Oboe</option>
+                    </optgroup>
+                    <optgroup label="Viento Metal">
+                      <option value="Trompeta">Trompeta</option>
+                      <option value="Trompa">Trompa</option>
+                      <option value="Trombón">Trombón</option>
+                      <option value="Bombardino/Tuba">Bombardino / Tuba</option>
+                    </optgroup>
+                    <optgroup label="Percusión">
+                      <option value="Percusion">Percusión</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">¿Tienes experiencia previa?</label>
+                  <select name="experiencia" value={formData.experiencia} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white"
+                  >
+                    <option value="No">No, empiezo desde cero</option>
+                    <option value="Si">Sí, ya sé algo de música</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones (Opcional)</label>
+                  <textarea name="observaciones" rows={3} value={formData.observaciones} onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 resize-none"
+                    placeholder="Cuéntanos si tienes disponibilidad horaria limitada, necesidades especiales, etc."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" 
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg rounded-xl transition-all shadow-md hover:shadow-lg mt-4"
+            >
+              Enviar Preinscripción
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* --- SECCIÓN: CTA (Llamada a la acción alternativa) --- */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-900 text-white text-center">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">¿Te animas a formar parte?</h2>
-          <p className="text-indigo-100 text-lg mb-8 leading-relaxed">
-            Las matrículas suelen abrirse en septiembre, pero estamos encantados de informarte durante todo el año. Ponte en contacto con nosotros y resolveremos todas tus dudas.
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">¿Tienes alguna duda antes de apuntarte?</h2>
+          <p className="text-slate-400 mb-8">
+            Si prefieres hablar con nosotros primero, no dudes en contactarnos directamente.
           </p>
           <Link 
             href="/contacto" 
-            className="inline-block px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl shadow-lg hover:bg-slate-50 hover:scale-105 transition-all"
+            className="inline-block px-6 py-3 border-2 border-white text-white font-medium rounded-xl hover:bg-white hover:text-slate-900 transition-all"
           >
-            Solicitar Información
+            Ir a Contacto
           </Link>
         </div>
       </section>
