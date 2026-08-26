@@ -109,6 +109,9 @@ export default function Navbar() {
           <Link href="/noticias" onClick={closeMenu} className="block px-4 py-3 rounded-xl text-base font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
             Noticias
           </Link>
+          <Link href="/inscripción" onClick={closeMenu} className="block px-4 py-3 rounded-xl text-base font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+            Inscríbete
+          </Link>
           
           <div className="pt-4 mt-4 border-t border-slate-100">
             <Link 
