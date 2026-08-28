@@ -346,28 +346,22 @@ export default function Academia() {
               <h3 className="text-lg font-semibold text-indigo-900 mb-4">4. Protección de Datos</h3>
               
               {/* Cajita con scroll para el texto largo */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 h-32 overflow-y-auto mb-4 custom-scrollbar">
-                <p className="font-bold mb-2">INFORMACIÓN BÁSICA SOBRE PROTECCIÓN DE DATOS:</p>
-                <p className="mb-2">
-                  <strong>Responsable:</strong> Agrupación Musical Isorana.<br/>
-                  <strong>Finalidad:</strong> Gestión de la preinscripción en la academia de música, contacto para formalizar la matrícula y envío de información relevante sobre el curso.<br/>
-                  <strong>Legitimación:</strong> Consentimiento del interesado o su tutor legal.<br/>
-                  <strong>Destinatarios:</strong> No se cederán datos a terceros, salvo obligación legal.<br/>
-                  <strong>Derechos:</strong> Tienes derecho a acceder, rectificar y suprimir los datos, así como otros derechos, dirigiéndote a nuestro correo electrónico.
-                </p>
-                
-                <div className="mt-4">
-                  PROTECCIÓN DE DATOS PERSONALES
+              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-600 h-48 overflow-y-auto mb-4 custom-scrollbar">
+                <p className="font-bold mb-3 text-slate-800 text-sm">PROTECCIÓN DE DATOS PERSONALES</p>
+                <p className="mb-3">
                   De conformidad con lo dispuesto en el Reglamento (UE) 2016/679 General de Protección de Datos (RGPD) y en la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), se informa de lo siguiente:
-                  Responsable del tratamiento: Agrupación Musical Isorana AMUSIC, con CIF G38047940.
-                  Finalidad: Los datos personales facilitados mediante este formulario serán tratados con la finalidad de gestionar la preinscripción, inscripción y participación del alumno/a en las actividades formativas de la Academia de la Agrupación Musical Isorana AMUSIC, así como para realizar las comunicaciones necesarias relacionadas con la organización de las clases, horarios, actividades y funcionamiento de la academia.
-                  Legitimación: El tratamiento de los datos se basa en la aplicación de medidas precontractuales solicitadas por la persona interesada y, en su caso, en la posterior relación derivada de la inscripción del alumno/a, así como en el cumplimiento de las obligaciones legales aplicables.
-                  Conservación: Los datos se conservarán durante el tiempo necesario para gestionar la preinscripción y, en caso de formalizarse la matrícula, durante el tiempo que se mantenga la relación con la Academia y posteriormente durante los plazos exigidos legalmente.
-                  Destinatarios: Los datos no serán cedidos a terceros salvo obligación legal o cuando sea necesario para la correcta prestación de los servicios, pudiendo tener acceso a ellos los proveedores que actúen como encargados del tratamiento de la Agrupación.
-                  Derechos: La persona interesada podrá ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y, cuando proceda, portabilidad de sus datos, dirigiéndose a Agrupación Musical Isorana AMUSIC a través del correo electrónico agrupacionmusicalisorana@gmail.com
-                  Asimismo, podrá presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD).
+                </p>
+                <ul className="space-y-3 mb-4">
+                  <li><strong>Responsable del tratamiento:</strong> Agrupación Musical Isorana AMUSIC, con CIF G38047940.</li>
+                  <li><strong>Finalidad:</strong> Los datos personales facilitados mediante este formulario serán tratados con la finalidad de gestionar la preinscripción, inscripción y participación del alumno/a en las actividades formativas de la Academia de la Agrupación Musical Isorana AMUSIC, así como para realizar las comunicaciones necesarias relacionadas con la organización de las clases, horarios, actividades y funcionamiento de la academia.</li>
+                  <li><strong>Legitimación:</strong> El tratamiento de los datos se basa en la aplicación de medidas precontractuales solicitadas por la persona interesada y, en su caso, en la posterior relación derivada de la inscripción del alumno/a, así como en el cumplimiento de las obligaciones legales aplicables.</li>
+                  <li><strong>Conservación:</strong> Los datos se conservarán durante el tiempo necesario para gestionar la preinscripción y, en caso de formalizarse la matrícula, durante el tiempo que se mantenga la relación con la Academia y posteriormente durante los plazos exigidos legalmente.</li>
+                  <li><strong>Destinatarios:</strong> Los datos no serán cedidos a terceros salvo obligación legal o cuando sea necesario para la correcta prestación de los servicios, pudiendo tener acceso a ellos los proveedores que actúen como encargados del tratamiento de la Agrupación.</li>
+                  <li><strong>Derechos:</strong> La persona interesada podrá ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y, cuando proceda, portabilidad de sus datos, dirigiéndose a Agrupación Musical Isorana AMUSIC a través del correo electrónico agrupacionmusicalisorana@gmail.com. Asimismo, podrá presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD).</li>
+                </ul>
+                <p className="font-medium text-slate-700">
                   En el caso de alumnos/as menores de edad, los datos serán facilitados por su padre, madre o representante legal cuando corresponda.
-                </div>
+                </p>
               </div>
               
               {/* Casilla obligatoria */}
