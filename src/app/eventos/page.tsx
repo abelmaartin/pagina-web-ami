@@ -1,19 +1,25 @@
 import Link from 'next/link';
-import prisma from '@/lib/prisma'; // Importamos nuestro conector
+import prisma from '@/lib/prisma';
 
-// Convertimos la función en 'async' (asíncrona) porque va a esperar datos de la base de datos
 export default async function Eventos() {
-  
-  // Hacemos la consulta real a la base de datos SQLite
-  // Pedimos todos los eventos ordenados por fecha ascendente (los más próximos primero)
-
-  // Añade esta línea temporalmente para romper la caché de Turbopack:
-  console.log("Forzando recarga limpia de Turbopack...");
-  const proximosEventos = await prisma.evento.findMany({
+  // 1. Hacemos la consulta a la base de datos
+  const eventosBd = await prisma.evento.findMany({
     orderBy: {
-      fecha: 'asc',
+      fecha: 'asc', // Esto ya ordenaba correctamente por fecha
     },
   });
+
+  // 2. LÓGICA DE FECHAS: Separamos los eventos futuros de los pasados
+  const ahora = new Date();
+  
+  // Los que aún no han ocurrido (o están ocurriendo hoy)
+  const eventosFuturos = eventosBd.filter((e) => new Date(e.fecha) >= ahora);
+  
+  // Los que ya pasaron (les damos la vuelta para que el evento de "ayer" salga antes que el de "hace un año")
+  const eventosPasados = eventosBd.filter((e) => new Date(e.fecha) < ahora).reverse();
+  
+  // Juntamos las dos listas: primero los futuros, luego los pasados
+  const todosLosEventos = [...eventosFuturos, ...eventosPasados];
 
   return (
     <main className="flex flex-col min-h-screen bg-white">
@@ -30,22 +36,26 @@ export default async function Eventos() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
         <div className="space-y-8">
           
-          {proximosEventos.map((evento) => {
-            // Formateamos la fecha que viene de la base de datos (Ej: 2026-08-15T20:30:00.000Z)
+          {todosLosEventos.map((evento) => {
             const fechaObjeto = new Date(evento.fecha);
             
-            // Extraemos el día de la semana (Ej: "Sábado") y lo ponemos en mayúscula inicial
+            // Comprobamos si el evento ya ha pasado
+            const esPasado = fechaObjeto < ahora;
+            
+            // Formateo de fechas
             const diaSemanaRaw = fechaObjeto.toLocaleDateString('es-ES', { weekday: 'long' });
             const diaSemana = diaSemanaRaw.charAt(0).toUpperCase() + diaSemanaRaw.slice(1);
-            
-            // Extraemos el día y mes (Ej: "15 Ago")
             const fechaCorta = fechaObjeto.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-            
-            // Extraemos la hora (Ej: "20:30")
             const hora = fechaObjeto.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
             return (
-              <div key={evento.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col md:flex-row">
+              <div 
+                key={evento.id} 
+                // 👇 Si es pasado, aplicamos opacidad y escala de grises
+                className={`bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col md:flex-row ${
+                  esPasado ? 'opacity-60 grayscale hover:grayscale-0 hover:opacity-100 duration-500' : ''
+                }`}
+              >
                 
                 {/* Bloque de Fecha (Izquierda) */}
                 <div className={`${evento.color || 'bg-slate-50 text-slate-600'} p-6 md:w-48 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r text-center shrink-0`}>
@@ -54,11 +64,20 @@ export default async function Eventos() {
                   <span className="mt-3 px-3 py-1 bg-white/60 rounded-full text-xs font-semibold uppercase tracking-wider backdrop-blur-sm shadow-sm border border-white/20">
                     {evento.tipo}
                   </span>
+                  
+                  {/* 👇 Etiqueta de FINALIZADO si la fecha ya pasó */}
+                  {esPasado && (
+                    <span className="mt-2 px-3 py-1 bg-slate-800 text-white rounded-full text-xs font-bold uppercase tracking-wider">
+                      Finalizado
+                    </span>
+                  )}
                 </div>
 
                 {/* Contenido del Evento (Derecha) */}
                 <div className="p-6 md:p-8 flex-grow flex flex-col justify-center">
-                  <h3 className="text-2xl font-bold text-slate-800 mb-3">{evento.titulo}</h3>
+                  <h3 className="text-2xl font-bold text-slate-800 mb-3">
+                    {evento.titulo}
+                  </h3>
                   <p className="text-slate-600 mb-6 leading-relaxed">
                     {evento.descripcion}
                   </p>
@@ -89,7 +108,7 @@ export default async function Eventos() {
         </div>
 
         {/* Mensaje dinámico si no hay eventos en la Base de Datos */}
-        {proximosEventos.length === 0 && (
+        {todosLosEventos.length === 0 && (
           <div className="text-center py-16 bg-slate-50 rounded-3xl border border-slate-100">
             <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
