@@ -54,7 +54,7 @@ export default function AdminLayout({
             👥​ Inscripciones
           </Link>
           <Link 
-            href="/admin/inscripciones"
+            href="/admin/recibos"
             className="block px-4 py-3 rounded-lg hover:bg-indigo-600 transition-colors"
           >
             🧾 Recibos
