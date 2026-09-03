@@ -79,12 +79,16 @@ model Preinscripcion {
 }
 
 model Recibo {
-  id           Int      @id @default(autoincrement())
-  concepto     String   // Ej: "Cuota Socio 2026", "Tacos Lotería Navidad"
-  tipo         String   // Ej: "SOCIO", "LOTERIA", "MATERIAL", "OTRO"
-  destinatario String   // Nombre del músico, alumno o socio
-  importe      Float    // Cantidad de dinero
-  estado       String   @default("PENDIENTE") // PENDIENTE, PAGADO, ANULADO
-  fechaEmision DateTime @default(now())
-  notas        String?  // Opcional: "Me debe 5€", "Pagado por Bizum", etc.
+  id                Int      @id @default(autoincrement())
+  concepto          String   
+  tipo              String   
+  destinatario      String   
+  importe           Float    
+  estado            String   @default("PENDIENTE")
+  fechaEmision      DateTime @default(now())
+  notas             String?  
+  
+  // --- NUEVOS CAMPOS ---
+  musicoResponsable String?  // El músico al que se le entrega la lotería o que trae al socio
+  coleccion         String?  // Para agruparlos (Ej: "Socios 2026", "Lotería Navidad 2026")
 }

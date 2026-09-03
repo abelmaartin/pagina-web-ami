@@ -21,12 +21,14 @@ export async function crearRecibo(data: any) {
         concepto: data.concepto,
         tipo: data.tipo,
         destinatario: data.destinatario,
-        importe: parseFloat(data.importe), // Nos aseguramos de que sea un número
+        importe: parseFloat(data.importe),
         estado: data.estado || 'PENDIENTE',
         notas: data.notas || null,
+        musicoResponsable: data.musicoResponsable || null,
+        coleccion: data.coleccion || null,
       }
     });
-    revalidatePath('/admin/recibos'); // Recarga la caché de la página
+    revalidatePath('/admin/recibos');
     return { success: true };
   } catch (error) {
     console.error('Error al crear recibo:', error);
@@ -56,5 +58,42 @@ export async function eliminarRecibo(id: number) {
   } catch (error) {
     console.error('Error al eliminar recibo:', error);
     return { success: false, error: 'No se pudo eliminar el recibo' };
+  }
+}
+
+// NUEVA FUNCIÓN: Renovar una colección entera
+export async function renovarColeccion(coleccionAntigua: string, nuevaColeccion: string, nuevoConcepto: string) {
+  try {
+    // 1. Buscamos todos los recibos de la colección antigua
+    const recibosAntiguos = await prisma.recibo.findMany({
+      where: { coleccion: coleccionAntigua }
+    });
+
+    if (recibosAntiguos.length === 0) {
+      return { success: false, error: 'No se encontraron recibos en esa colección' };
+    }
+
+    // 2. Preparamos los nuevos datos (mismo importe y destinatario, pero nueva colección, nuevo concepto y PENDIENTE)
+    const nuevosRecibos = recibosAntiguos.map((recibo) => ({
+      concepto: nuevoConcepto,
+      tipo: recibo.tipo,
+      destinatario: recibo.destinatario,
+      importe: recibo.importe,
+      estado: 'PENDIENTE', // Siempre nacen pendientes
+      notas: recibo.notas,
+      musicoResponsable: recibo.musicoResponsable,
+      coleccion: nuevaColeccion,
+    }));
+
+    // 3. Los insertamos todos de golpe
+    await prisma.recibo.createMany({
+      data: nuevosRecibos
+    });
+
+    revalidatePath('/admin/recibos');
+    return { success: true, cantidad: nuevosRecibos.length };
+  } catch (error) {
+    console.error('Error al renovar colección:', error);
+    return { success: false, error: 'Ocurrió un error al duplicar la colección' };
   }
 }
