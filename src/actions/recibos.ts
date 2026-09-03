@@ -3,14 +3,76 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-export async function obtenerRecibos() {
+// --- CARPETAS / COLECCIONES ---
+export async function obtenerColecciones() {
   try {
-    return await prisma.recibo.findMany({
-      orderBy: { fechaEmision: 'desc' }
+    return await prisma.coleccionRecibos.findMany({
+      include: { _count: { select: { recibos: true } } }, // Trae el número de recibos que tiene dentro
+      orderBy: { creadoEn: 'desc' }
     });
   } catch (error) {
-    console.error('Error al obtener recibos:', error);
     return [];
+  }
+}
+
+export async function crearColeccion(nombre: string) {
+  try {
+    await prisma.coleccionRecibos.create({ data: { nombre } });
+    revalidatePath('/admin/recibos');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Error al crear la colección' };
+  }
+}
+
+export async function borrarColeccion(id: number) {
+  try {
+    await prisma.coleccionRecibos.delete({ where: { id } });
+    revalidatePath('/admin/recibos');
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+export async function duplicarColeccion(coleccionIdAntigua: number, nuevoNombre: string, nuevoConcepto: string) {
+  try {
+    const recibosAntiguos = await prisma.recibo.findMany({ where: { coleccionId: coleccionIdAntigua } });
+    
+    // Creamos la carpeta nueva
+    const nuevaCarpeta = await prisma.coleccionRecibos.create({ data: { nombre: nuevoNombre } });
+
+    // Preparamos los recibos copiados (mismo destinatario y músico, pero estado PENDIENTE)
+    const nuevosRecibos = recibosAntiguos.map(r => ({
+      concepto: nuevoConcepto,
+      tipo: r.tipo,
+      destinatario: r.destinatario,
+      importe: r.importe,
+      estado: 'PENDIENTE',
+      notas: r.notas,
+      musicoResponsable: r.musicoResponsable,
+      coleccionId: nuevaCarpeta.id
+    }));
+
+    await prisma.recibo.createMany({ data: nuevosRecibos });
+    revalidatePath('/admin/recibos');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'No se pudo duplicar' };
+  }
+}
+
+// --- RECIBOS ---
+export async function obtenerInfoCarpeta(coleccionId: number) {
+  try {
+    const carpeta = await prisma.coleccionRecibos.findUnique({ where: { id: coleccionId } });
+    const recibos = await prisma.recibo.findMany({
+      where: { coleccionId },
+      orderBy: { fechaEmision: 'desc' }
+    });
+    return { carpeta, recibos };
+  } catch (error) {
+    return { carpeta: null, recibos: [] };
   }
 }
 
@@ -25,75 +87,32 @@ export async function crearRecibo(data: any) {
         estado: data.estado || 'PENDIENTE',
         notas: data.notas || null,
         musicoResponsable: data.musicoResponsable || null,
-        coleccion: data.coleccion || null,
+        coleccionId: parseInt(data.coleccionId),
       }
     });
-    revalidatePath('/admin/recibos');
+    revalidatePath(`/admin/recibos/${data.coleccionId}`);
     return { success: true };
   } catch (error) {
-    console.error('Error al crear recibo:', error);
-    return { success: false, error: 'No se pudo crear el recibo' };
+    return { success: false, error: 'Error al guardar' };
   }
 }
 
-export async function actualizarEstadoRecibo(id: number, estado: string) {
+export async function actualizarEstadoRecibo(id: number, estado: string, coleccionId: number) {
   try {
-    await prisma.recibo.update({
-      where: { id },
-      data: { estado }
-    });
-    revalidatePath('/admin/recibos');
+    await prisma.recibo.update({ where: { id }, data: { estado } });
+    revalidatePath(`/admin/recibos/${coleccionId}`);
     return { success: true };
   } catch (error) {
-    console.error('Error al actualizar estado:', error);
-    return { success: false, error: 'No se pudo actualizar el estado' };
+    return { success: false };
   }
 }
 
-export async function eliminarRecibo(id: number) {
+export async function eliminarRecibo(id: number, coleccionId: number) {
   try {
     await prisma.recibo.delete({ where: { id } });
-    revalidatePath('/admin/recibos');
+    revalidatePath(`/admin/recibos/${coleccionId}`);
     return { success: true };
   } catch (error) {
-    console.error('Error al eliminar recibo:', error);
-    return { success: false, error: 'No se pudo eliminar el recibo' };
-  }
-}
-
-// NUEVA FUNCIÓN: Renovar una colección entera
-export async function renovarColeccion(coleccionAntigua: string, nuevaColeccion: string, nuevoConcepto: string) {
-  try {
-    // 1. Buscamos todos los recibos de la colección antigua
-    const recibosAntiguos = await prisma.recibo.findMany({
-      where: { coleccion: coleccionAntigua }
-    });
-
-    if (recibosAntiguos.length === 0) {
-      return { success: false, error: 'No se encontraron recibos en esa colección' };
-    }
-
-    // 2. Preparamos los nuevos datos (mismo importe y destinatario, pero nueva colección, nuevo concepto y PENDIENTE)
-    const nuevosRecibos = recibosAntiguos.map((recibo) => ({
-      concepto: nuevoConcepto,
-      tipo: recibo.tipo,
-      destinatario: recibo.destinatario,
-      importe: recibo.importe,
-      estado: 'PENDIENTE', // Siempre nacen pendientes
-      notas: recibo.notas,
-      musicoResponsable: recibo.musicoResponsable,
-      coleccion: nuevaColeccion,
-    }));
-
-    // 3. Los insertamos todos de golpe
-    await prisma.recibo.createMany({
-      data: nuevosRecibos
-    });
-
-    revalidatePath('/admin/recibos');
-    return { success: true, cantidad: nuevosRecibos.length };
-  } catch (error) {
-    console.error('Error al renovar colección:', error);
-    return { success: false, error: 'Ocurrió un error al duplicar la colección' };
+    return { success: false };
   }
 }

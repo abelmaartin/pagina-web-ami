@@ -78,6 +78,15 @@ model Preinscripcion {
   fechaSolicitud  DateTime @default(now())
 }
 
+model ColeccionRecibos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique // Ej: "Socios 2026"
+  creadoEn    DateTime @default(now())
+  
+  // Relación: Una colección tiene muchos recibos
+  recibos     Recibo[]
+}
+
 model Recibo {
   id                Int      @id @default(autoincrement())
   concepto          String   
@@ -87,8 +96,9 @@ model Recibo {
   estado            String   @default("PENDIENTE")
   fechaEmision      DateTime @default(now())
   notas             String?  
-  
-  // --- NUEVOS CAMPOS ---
-  musicoResponsable String?  // El músico al que se le entrega la lotería o que trae al socio
-  coleccion         String?  // Para agruparlos (Ej: "Socios 2026", "Lotería Navidad 2026")
+  musicoResponsable String?  
+
+  // Relación con la carpeta (Si borras la carpeta, se borran sus recibos: Cascade)
+  coleccionId       Int
+  coleccion         ColeccionRecibos @relation(fields: [coleccionId], references: [id], onDelete: Cascade)
 }
