@@ -77,3 +77,14 @@ model Preinscripcion {
   estado          String   @default("PENDIENTE") // PENDIENTE, CONTACTADO, MATRICULADO, RECHAZADO
   fechaSolicitud  DateTime @default(now())
 }
+
+model Recibo {
+  id           Int      @id @default(autoincrement())
+  concepto     String   // Ej: "Cuota Socio 2026", "Tacos Lotería Navidad"
+  tipo         String   // Ej: "SOCIO", "LOTERIA", "MATERIAL", "OTRO"
+  destinatario String   // Nombre del músico, alumno o socio
+  importe      Float    // Cantidad de dinero
+  estado       String   @default("PENDIENTE") // PENDIENTE, PAGADO, ANULADO
+  fechaEmision DateTime @default(now())
+  notas        String?  // Opcional: "Me debe 5€", "Pagado por Bizum", etc.
+}
