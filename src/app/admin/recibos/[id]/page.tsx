@@ -122,9 +122,20 @@ export default function InteriorCarpeta() {
                     <option value="ANULADO">ANULADO</option>
                   </select>
                 </td>
-                <td className="p-4 text-right">
-                  <button onClick={() => borrarRecibo(r.id, r.destinatario)} className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium">Borrar</button>
+                
+                {/* BOTONES DE ACCIÓN (Imprimir y Borrar) */}
+                <td className="p-4 text-right flex justify-end gap-2">
+                  <Link 
+                    href={`/admin/recibos/imprimir/${r.id}`}
+                    className="text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-indigo-100"
+                  >
+                    Imprimir
+                  </Link>
+                  <button onClick={() => borrarRecibo(r.id, r.destinatario)} className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                    Borrar
+                  </button>
                 </td>
+
               </tr>
             ))}
           </tbody>

@@ -116,3 +116,14 @@ export async function eliminarRecibo(id: number, coleccionId: number) {
     return { success: false };
   }
 }
+
+export async function obtenerReciboPorId(id: number) {
+  try {
+    return await prisma.recibo.findUnique({
+      where: { id }
+    });
+  } catch (error) {
+    console.error('Error al obtener el recibo:', error);
+    return null;
+  }
+}
