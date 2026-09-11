@@ -22,7 +22,7 @@ export default function GestionInscripciones() {
   const cambiarEstado = async (id: number, nuevoEstado: string) => {
     const res = await actualizarEstadoInscripcion(id, nuevoEstado);
     if (res.success) {
-      cargarDatos(); // Recargamos la tabla para ver el nuevo color
+      cargarDatos();
     } else {
       alert("Error al cambiar el estado");
     }
@@ -39,7 +39,61 @@ export default function GestionInscripciones() {
     }
   };
 
-  // Función para dar color a las etiquetas de estado
+  // --- NUEVA FUNCIÓN PARA EXPORTAR A EXCEL (CSV) ---
+  const exportarAExcel = () => {
+    if (inscripciones.length === 0) {
+      alert("No hay datos para exportar.");
+      return;
+    }
+
+    // 1. Definimos las cabeceras de las columnas
+    const cabeceras = [
+      "Fecha Solicitud", "Estado", "Nombre", "Apellidos", "Fecha Nacimiento",
+      "Teléfono", "Email", "Es Menor", "Tutor Nombre", "Tutor DNI",
+      "Teléfono Tutor", "Instrumento", "Experiencia", "Observaciones"
+    ];
+
+    // 2. Extraemos y ordenamos los datos de cada alumno
+    const filas = inscripciones.map(insc => {
+      return [
+        new Date(insc.fechaSolicitud).toLocaleDateString('es-ES'),
+        insc.estado,
+        insc.nombre,
+        insc.apellidos,
+        insc.fechaNacimiento,
+        insc.telefono,
+        insc.email,
+        insc.esMenor ? "Sí" : "No",
+        insc.tutorNombre || "",
+        insc.tutorDni || "",
+        insc.tutorTelefono || "",
+        insc.instrumento || "",
+        insc.experiencia || "",
+        // Limpiamos saltos de línea en las observaciones para que no rompan el Excel
+        insc.observaciones ? insc.observaciones.replace(/(\r\n|\n|\r)/gm, " ") : ""
+      ];
+    });
+
+    // 3. Montamos el archivo CSV separando por punto y coma (formato europeo de Excel)
+    // El '\uFEFF' al principio es clave: le dice a Excel que use formato UTF-8 para leer bien las tildes y las ñ
+    const contenidoCSV = [
+      cabeceras.join(";"),
+      ...filas.map(fila => fila.map(campo => `"${campo}"`).join(";"))
+    ].join("\n");
+
+    const blob = new Blob(["\uFEFF" + contenidoCSV], { type: 'text/csv;charset=utf-8;' });
+    
+    // 4. Creamos un enlace invisible y forzamos el clic para descargar el archivo
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    // El archivo se descargará con la fecha de hoy en el nombre
+    link.download = `Inscripciones_Academia_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const colorEstado = (estado: string) => {
     switch (estado) {
       case 'PENDIENTE': return 'bg-rose-100 text-rose-700';
@@ -52,14 +106,28 @@ export default function GestionInscripciones() {
 
   return (
     <div className="p-6 md:p-12 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Solicitudes de Academia</h1>
           <p className="text-slate-500 mt-1">Gestiona los nuevos alumnos interesados en entrar a la banda.</p>
         </div>
-        <Link href="/admin" className="px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition-colors">
-          Volver al Panel
-        </Link>
+        <div className="flex gap-3">
+          {/* --- NUEVO BOTÓN DE EXPORTAR --- */}
+          <button 
+            onClick={exportarAExcel}
+            disabled={inscripciones.length === 0}
+            className="px-4 py-2 bg-emerald-100 text-emerald-700 font-bold rounded-xl hover:bg-emerald-200 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Descargar Excel
+          </button>
+          
+          <Link href="/admin" className="px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition-colors">
+            Volver
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -83,7 +151,6 @@ export default function GestionInscripciones() {
                 inscripciones.map((insc) => (
                   <tr key={insc.id} className="hover:bg-slate-50/50 transition-colors">
                     
-                    {/* Alumno */}
                     <td className="p-4">
                       <div className="font-bold text-slate-800">{insc.nombre} {insc.apellidos}</div>
                       <div className="text-xs text-slate-500">
@@ -96,14 +163,12 @@ export default function GestionInscripciones() {
                       </div>
                     </td>
 
-                    {/* Contacto */}
                     <td className="p-4 text-sm">
                       <div className="text-slate-800 font-medium">{insc.telefono}</div>
                       <div className="text-slate-500">{insc.email}</div>
                       {insc.esMenor && <div className="text-indigo-500 text-xs mt-1">Tel. Tutor: {insc.tutorTelefono}</div>}
                     </td>
 
-                    {/* Preferencias */}
                     <td className="p-4 text-sm">
                       <div className="font-medium text-slate-800">{insc.instrumento || 'No especificado'}</div>
                       <div className="text-xs text-slate-500">Exp: {insc.experiencia}</div>
@@ -114,7 +179,6 @@ export default function GestionInscripciones() {
                       )}
                     </td>
 
-                    {/* Estado */}
                     <td className="p-4">
                       <select 
                         value={insc.estado} 
@@ -128,7 +192,6 @@ export default function GestionInscripciones() {
                       </select>
                     </td>
 
-                    {/* Acciones */}
                     <td className="p-4 text-right">
                       <button 
                         onClick={() => borrarSolicitud(insc.id, insc.nombre)} 

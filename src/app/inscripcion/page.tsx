@@ -10,6 +10,9 @@ export default function Academia() {
   
   // Estado para controlar si acepta la política de privacidad
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
+
+  // Estado para evitar el doble clic / envíos múltiples
+  const [enviando, setEnviando] = useState(false);
   
   // Estado para guardar todos los datos del formulario
   const [formData, setFormData] = useState({
@@ -26,26 +29,37 @@ export default function Academia() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Llamamos a la función del servidor directamente, pasándole los datos
-    const respuesta = await registrarPreinscripcion({
-      ...formData,
-      esMenor
-    });
-
-    if (respuesta.success) {
-      alert("¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.");
-      
-      // Limpiamos el formulario
-      setFormData({
-        nombre: '', apellidos: '', fechaNacimiento: '',
-        telefono: '', email: '',
-        tutorNombre: '', tutorDni: '', tutorTelefono: '',
-        instrumento: '', experiencia: 'No', observaciones: ''
+    // Si ya se está enviando, ignoramos clics adicionales
+    if (enviando) return;
+    
+    setEnviando(true); // Bloqueamos el botón
+    
+    try {
+      // Llamamos a la función del servidor directamente, pasándole los datos
+      const respuesta = await registrarPreinscripcion({
+        ...formData,
+        esMenor
       });
-      setEsMenor(false);
-      setAceptaPrivacidad(false); // Desmarcamos la casilla
-    } else {
-      alert("Hubo un problema al enviar la solicitud. Por favor, inténtalo de nuevo.");
+
+      if (respuesta.success) {
+        alert("¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.");
+        
+        // Limpiamos el formulario
+        setFormData({
+          nombre: '', apellidos: '', fechaNacimiento: '',
+          telefono: '', email: '',
+          tutorNombre: '', tutorDni: '', tutorTelefono: '',
+          instrumento: '', experiencia: 'No', observaciones: ''
+        });
+        setEsMenor(false);
+        setAceptaPrivacidad(false); // Desmarcamos la casilla
+      } else {
+        alert("Hubo un problema al enviar la solicitud. Por favor, inténtalo de nuevo.");
+      }
+    } catch (error) {
+      alert("Ocurrió un error inesperado. Inténtalo de nuevo más tarde.");
+    } finally {
+      setEnviando(false); // Desbloqueamos el botón siempre al terminar
     }
   };
 
@@ -54,9 +68,9 @@ export default function Academia() {
       
       {/* --- CABECERA DE LA PÁGINA --- */}
       <section className="bg-slate-900 text-white py-24 px-4 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">Inscripción</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">Escuela de Música</h1>
         <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed mb-8">
-          Descubre nuestra oferta educativa. Si ya lo tienes claro, rellena el formulario de preinscripción y nos pondremos en contacto contigo a la mayor brevedad posible.
+          Formamos a los músicos del mañana. Descubre nuestra oferta educativa para todas las edades y prepárate para dar el salto musical.
         </p>
         <a 
           href="#formulario-inscripcion" 
@@ -158,6 +172,7 @@ export default function Academia() {
             </p>
           </div>
         </div>
+
       </section>
 
       {/* --- SECCIÓN: INSTRUMENTOS --- */}
@@ -345,7 +360,6 @@ export default function Academia() {
             <div className="mt-8 border-t border-slate-200 pt-8">
               <h3 className="text-lg font-semibold text-indigo-900 mb-4">4. Protección de Datos</h3>
               
-              {/* Cajita con scroll para el texto largo */}
               <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-600 h-48 overflow-y-auto mb-4 custom-scrollbar">
                 <p className="font-bold mb-3 text-slate-800 text-sm">PROTECCIÓN DE DATOS PERSONALES</p>
                 <p className="mb-3">
@@ -364,7 +378,6 @@ export default function Academia() {
                 </p>
               </div>
               
-              {/* Casilla obligatoria */}
               <div className="flex items-start gap-3 bg-indigo-50/30 p-4 rounded-xl border border-indigo-50">
                 <input 
                   type="checkbox" 
@@ -380,10 +393,12 @@ export default function Academia() {
               </div>
             </div>
 
-            <button type="submit" 
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg rounded-xl transition-all shadow-md hover:shadow-lg mt-4"
+            <button 
+              type="submit" 
+              disabled={enviando}
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mt-4"
             >
-              Enviar Preinscripción
+              {enviando ? 'Enviando solicitud...' : 'Enviar Preinscripción'}
             </button>
           </form>
         </div>
