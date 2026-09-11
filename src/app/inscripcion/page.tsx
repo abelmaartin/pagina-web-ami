@@ -323,6 +323,7 @@ export default function Academia() {
                     <optgroup label="Viento Madera">
                       <option value="Flauta Travesera">Flauta Travesera</option>
                       <option value="Clarinete">Clarinete</option>
+                      <option value="Requinto">Requinto</option>
                       <option value="Saxofón">Saxofón</option>
                       <option value="Oboe">Oboe</option>
                     </optgroup>
