@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { registrarPreinscripcion } from '@/actions/preinscripciones';
 
@@ -13,6 +13,16 @@ export default function Academia() {
 
   // Estado para evitar el doble clic / envíos múltiples
   const [enviando, setEnviando] = useState(false);
+
+  // Estado para el control de plazo
+  const [plazoCerrado, setPlazoCerrado] = useState(false);
+
+  // --- NUEVO ESTADO: CONTROL DEL MODAL (Pop-up) ---
+  const [modal, setModal] = useState({
+    visible: false,
+    tipo: 'exito', // puede ser 'exito' o 'error'
+    mensaje: ''
+  });
   
   // Estado para guardar todos los datos del formulario
   const [formData, setFormData] = useState({
@@ -22,27 +32,44 @@ export default function Academia() {
     instrumento: '', experiencia: 'No', observaciones: ''
   });
 
+  // Lógica de cierre automático
+  useEffect(() => {
+    const limite = new Date('2026-09-26T23:59:59');
+    const ahora = new Date();
+    
+    if (ahora > limite) {
+      setPlazoCerrado(true);
+    }
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const cerrarModal = () => {
+    setModal({ ...modal, visible: false });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Si ya se está enviando, ignoramos clics adicionales
-    if (enviando) return;
+    if (enviando || plazoCerrado) return;
     
-    setEnviando(true); // Bloqueamos el botón
+    setEnviando(true); 
     
     try {
-      // Llamamos a la función del servidor directamente, pasándole los datos
       const respuesta = await registrarPreinscripcion({
         ...formData,
         esMenor
       });
 
       if (respuesta.success) {
-        alert("¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.");
+        // En lugar de alert(), mostramos nuestro pop-up de éxito
+        setModal({
+          visible: true,
+          tipo: 'exito',
+          mensaje: '¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.'
+        });
         
         // Limpiamos el formulario
         setFormData({
@@ -52,20 +79,74 @@ export default function Academia() {
           instrumento: '', experiencia: 'No', observaciones: ''
         });
         setEsMenor(false);
-        setAceptaPrivacidad(false); // Desmarcamos la casilla
+        setAceptaPrivacidad(false);
       } else {
-        alert("Hubo un problema al enviar la solicitud. Por favor, inténtalo de nuevo.");
+        // Pop-up de error (por ejemplo, si el servidor rechaza por la hora)
+        setModal({
+          visible: true,
+          tipo: 'error',
+          mensaje: respuesta.error || 'Hubo un problema al enviar la solicitud. Por favor, inténtalo de nuevo.'
+        });
       }
     } catch (error) {
-      alert("Ocurrió un error inesperado. Inténtalo de nuevo más tarde.");
+      // Pop-up de error fatal
+      setModal({
+        visible: true,
+        tipo: 'error',
+        mensaje: 'Ocurrió un error inesperado. Inténtalo de nuevo más tarde.'
+      });
     } finally {
-      setEnviando(false); // Desbloqueamos el botón siempre al terminar
+      setEnviando(false);
     }
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-white">
+    <main className="flex flex-col min-h-screen bg-white relative">
       
+      {/* --- MODAL PERSONALIZADO (POP-UP) --- */}
+      {modal.visible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all">
+            <div className="text-center">
+              
+              {/* Icono animado dependiendo de si es éxito o error */}
+              {modal.tipo === 'exito' ? (
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-emerald-100 mb-6">
+                  <svg className="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-rose-100 mb-6">
+                  <svg className="h-10 w-10 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              )}
+              
+              <h3 className="text-2xl font-bold text-slate-800 mb-3">
+                {modal.tipo === 'exito' ? '¡Todo listo!' : 'Ups, algo salió mal'}
+              </h3>
+              
+              <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+                {modal.mensaje}
+              </p>
+              
+              <button
+                onClick={cerrarModal}
+                className={`w-full py-4 rounded-xl font-bold text-white text-lg transition-colors shadow-md ${
+                  modal.tipo === 'exito' 
+                    ? 'bg-emerald-600 hover:bg-emerald-700' 
+                    : 'bg-rose-600 hover:bg-rose-700'
+                }`}
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- CABECERA DE LA PÁGINA --- */}
       <section className="bg-slate-900 text-white py-24 px-4 sm:px-6 lg:px-8 text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-6">Escuela de Música</h1>
@@ -76,7 +157,7 @@ export default function Academia() {
           href="#formulario-inscripcion" 
           className="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors"
         >
-          Ir al formulario ↓
+          {plazoCerrado ? 'Ver información ↓' : 'Ir al formulario ↓'}
         </a>
       </section>
 
@@ -90,7 +171,6 @@ export default function Academia() {
         {/* Cuadrícula de materias principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           
-          {/* 1. Música y movimiento */}
           <div className="bg-rose-50/50 p-8 rounded-3xl border border-rose-100 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left transition-all hover:shadow-md">
             <div className="w-14 h-14 bg-rose-100 text-rose-600 rounded-2xl flex-shrink-0 flex items-center justify-center">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +185,6 @@ export default function Academia() {
             </div>
           </div>
 
-          {/* 2. Iniciación a la música */}
           <div className="bg-amber-50/50 p-8 rounded-3xl border border-amber-100 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left transition-all hover:shadow-md">
             <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex-shrink-0 flex items-center justify-center">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,7 +199,6 @@ export default function Academia() {
             </div>
           </div>
 
-          {/* 3. Solfeo */}
           <div className="bg-emerald-50/50 p-8 rounded-3xl border border-emerald-100 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left transition-all hover:shadow-md">
             <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex-shrink-0 flex items-center justify-center">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +213,6 @@ export default function Academia() {
             </div>
           </div>
 
-          {/* 4. Instrumentos */}
           <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left transition-all hover:shadow-md">
             <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex-shrink-0 flex items-center justify-center">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -152,7 +229,6 @@ export default function Academia() {
 
         </div>
 
-        {/* 5. Novedad: Preparación Conservatorio */}
         <div className="relative bg-gradient-to-r from-indigo-50 to-purple-50 p-8 md:p-10 rounded-3xl border border-indigo-100 shadow-sm overflow-hidden flex flex-col md:flex-row gap-8 items-center text-center md:text-left">
           <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider">
             Novedad este curso
@@ -172,7 +248,6 @@ export default function Academia() {
             </p>
           </div>
         </div>
-
       </section>
 
       {/* --- SECCIÓN: INSTRUMENTOS --- */}
@@ -220,188 +295,219 @@ export default function Academia() {
         </div>
       </section>
 
-      {/* --- SECCIÓN: FORMULARIO DE INSCRIPCIÓN --- */}
+      {/* --- SECCIÓN: FORMULARIO DE INSCRIPCIÓN O AVISO DE CIERRE --- */}
       <section id="formulario-inscripcion" className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
         <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 md:p-12">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800 mb-4">Formulario de Preinscripción</h2>
-            <p className="text-slate-600">
-              Completa tus datos y contactaremos contigo para formalizar la matrícula y resolver dudas.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            
-            {/* Bloque 1: Datos del Alumno */}
-            <div>
-              <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">1. Datos del Alumno</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Nombre *</label>
-                  <input type="text" name="nombre" required value={formData.nombre} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" 
-                    placeholder="Ej: Laura" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Apellidos *</label>
-                  <input type="text" name="apellidos" required value={formData.apellidos} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Nacimiento *</label>
-                  <input type="date" name="fechaNacimiento" required value={formData.fechaNacimiento} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
-                </div>
+          
+          {plazoCerrado ? (
+            /* --- AVISO DE PLAZO CERRADO --- */
+            <div className="text-center py-8">
+              <div className="w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-            </div>
-
-            {/* Bloque 2: Datos de Contacto */}
-            <div>
-              <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">2. Información de Contacto</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono *</label>
-                  <input type="tel" name="telefono" required value={formData.telefono} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico *</label>
-                  <input type="email" name="email" required value={formData.email} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
-                </div>
-              </div>
-            </div>
-
-            {/* Casilla Menor de Edad */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
-              <input 
-                type="checkbox" 
-                id="menorEdad" 
-                checked={esMenor} 
-                onChange={(e) => setEsMenor(e.target.checked)}
-                className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-              />
-              <label htmlFor="menorEdad" className="font-medium text-slate-700 cursor-pointer">
-                El alumno es menor de edad
-              </label>
-            </div>
-
-            {/* Bloque 3: Datos del Tutor (Oculto por defecto) */}
-            {esMenor && (
-              <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 animate-fade-in">
-                <h3 className="text-lg font-semibold text-indigo-900 border-b border-indigo-200 pb-2 mb-6">Datos del Padre, Madre o Tutor Legal</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Nombre y Apellidos del Tutor *</label>
-                    <input type="text" name="tutorNombre" required={esMenor} value={formData.tutorNombre} onChange={handleChange}
-                      className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">DNI / NIE *</label>
-                    <input type="text" name="tutorDni" required={esMenor} value={formData.tutorDni} onChange={handleChange}
-                      className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono de Contacto (Tutor) *</label>
-                    <input type="tel" name="tutorTelefono" required={esMenor} value={formData.tutorTelefono} onChange={handleChange}
-                      className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Bloque 4: Preferencias Musicales */}
-            <div>
-              <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">3. Preferencias Musicales</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Instrumento de Interés</label>
-                  <select name="instrumento" value={formData.instrumento} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white"
-                  >
-                    <option value="">Aún no lo sé / Música y Movimiento</option>
-                    <optgroup label="Viento Madera">
-                      <option value="Flauta Travesera">Flauta Travesera</option>
-                      <option value="Clarinete">Clarinete</option>
-                      <option value="Requinto">Requinto</option>
-                      <option value="Saxofón">Saxofón</option>
-                      <option value="Oboe">Oboe</option>
-                    </optgroup>
-                    <optgroup label="Viento Metal">
-                      <option value="Trompeta">Trompeta</option>
-                      <option value="Trompa">Trompa</option>
-                      <option value="Trombón">Trombón</option>
-                      <option value="Bombardino/Tuba">Bombardino / Tuba</option>
-                    </optgroup>
-                    <optgroup label="Percusión">
-                      <option value="Percusion">Percusión</option>
-                    </optgroup>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">¿Tienes experiencia previa?</label>
-                  <select name="experiencia" value={formData.experiencia} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white"
-                  >
-                    <option value="No">No, empiezo desde cero</option>
-                    <option value="Si">Sí, ya sé algo de música</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones (Opcional)</label>
-                  <textarea name="observaciones" rows={3} value={formData.observaciones} onChange={handleChange}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 resize-none"
-                    placeholder="Cuéntanos si tienes disponibilidad horaria limitada, necesidades especiales, etc."
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-
-            {/* Bloque 5: Protección de Datos */}
-            <div className="mt-8 border-t border-slate-200 pt-8">
-              <h3 className="text-lg font-semibold text-indigo-900 mb-4">4. Protección de Datos</h3>
-              
-              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-600 h-48 overflow-y-auto mb-4 custom-scrollbar">
-                <p className="font-bold mb-3 text-slate-800 text-sm">PROTECCIÓN DE DATOS PERSONALES</p>
-                <p className="mb-3">
-                  De conformidad con lo dispuesto en el Reglamento (UE) 2016/679 General de Protección de Datos (RGPD) y en la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), se informa de lo siguiente:
+              <h2 className="text-3xl font-bold text-slate-800 mb-4">Plazo de inscripción cerrado</h2>
+              <p className="text-slate-600 text-lg mb-8 max-w-lg mx-auto">
+                El plazo para enviar nuevas solicitudes online para el curso 2026/2027 ha finalizado.
+              </p>
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                <p className="text-slate-700 font-medium mb-4">
+                  Si deseas consultar disponibilidad de plazas en algún instrumento o tienes cualquier duda, ponte en contacto con nosotros.
                 </p>
-                <ul className="space-y-3 mb-4">
-                  <li><strong>Responsable del tratamiento:</strong> Agrupación Musical Isorana AMUSIC, con CIF G38047940.</li>
-                  <li><strong>Finalidad:</strong> Los datos personales facilitados mediante este formulario serán tratados con la finalidad de gestionar la preinscripción, inscripción y participación del alumno/a en las actividades formativas de la Academia de la Agrupación Musical Isorana AMUSIC, así como para realizar las comunicaciones necesarias relacionadas con la organización de las clases, horarios, actividades y funcionamiento de la academia.</li>
-                  <li><strong>Legitimación:</strong> El tratamiento de los datos se basa en la aplicación de medidas precontractuales solicitadas por la persona interesada y, en su caso, en la posterior relación derivada de la inscripción del alumno/a, así como en el cumplimiento de las obligaciones legales aplicables.</li>
-                  <li><strong>Conservación:</strong> Los datos se conservarán durante el tiempo necesario para gestionar la preinscripción y, en caso de formalizarse la matrícula, durante el tiempo que se mantenga la relación con la Academia y posteriormente durante los plazos exigidos legalmente.</li>
-                  <li><strong>Destinatarios:</strong> Los datos no serán cedidos a terceros salvo obligación legal o cuando sea necesario para la correcta prestación de los servicios, pudiendo tener acceso a ellos los proveedores que actúen como encargados del tratamiento de la Agrupación.</li>
-                  <li><strong>Derechos:</strong> La persona interesada podrá ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y, cuando proceda, portabilidad de sus datos, dirigiéndose a Agrupación Musical Isorana AMUSIC a través del correo electrónico agrupacionmusicalisorana@gmail.com. Asimismo, podrá presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD).</li>
-                </ul>
-                <p className="font-medium text-slate-700">
-                  En el caso de alumnos/as menores de edad, los datos serán facilitados por su padre, madre o representante legal cuando corresponda.
+                <Link 
+                  href="/contacto" 
+                  className="inline-block px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-md"
+                >
+                  Contactar con la Academia
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* --- EL FORMULARIO NORMAL --- */
+            <>
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-bold text-slate-800 mb-4">Formulario de Preinscripción</h2>
+                <p className="text-slate-600">
+                  Completa tus datos y contactaremos contigo para formalizar la matrícula y resolver dudas.
                 </p>
               </div>
-              
-              <div className="flex items-start gap-3 bg-indigo-50/30 p-4 rounded-xl border border-indigo-50">
-                <input 
-                  type="checkbox" 
-                  id="aceptaPrivacidad" 
-                  required
-                  checked={aceptaPrivacidad} 
-                  onChange={(e) => setAceptaPrivacidad(e.target.checked)}
-                  className="mt-1 w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer flex-shrink-0"
-                />
-                <label htmlFor="aceptaPrivacidad" className="text-sm font-medium text-slate-700 cursor-pointer">
-                  He leído y acepto la política de privacidad y el tratamiento de mis datos personales (y los del menor a mi cargo, si procede) para la gestión de esta solicitud. *
-                </label>
-              </div>
-            </div>
 
-            <button 
-              type="submit" 
-              disabled={enviando}
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mt-4"
-            >
-              {enviando ? 'Enviando solicitud...' : 'Enviar Preinscripción'}
-            </button>
-          </form>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                
+                {/* Bloque 1: Datos del Alumno */}
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">1. Datos del Alumno</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Nombre *</label>
+                      <input type="text" name="nombre" required value={formData.nombre} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" 
+                        placeholder="Ej: Laura" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Apellidos *</label>
+                      <input type="text" name="apellidos" required value={formData.apellidos} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Nacimiento *</label>
+                      <input type="date" name="fechaNacimiento" required value={formData.fechaNacimiento} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloque 2: Datos de Contacto */}
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">2. Información de Contacto</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono *</label>
+                      <input type="tel" name="telefono" required value={formData.telefono} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico *</label>
+                      <input type="email" name="email" required value={formData.email} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Casilla Menor de Edad */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="menorEdad" 
+                    checked={esMenor} 
+                    onChange={(e) => setEsMenor(e.target.checked)}
+                    className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  />
+                  <label htmlFor="menorEdad" className="font-medium text-slate-700 cursor-pointer">
+                    El alumno es menor de edad
+                  </label>
+                </div>
+
+                {/* Bloque 3: Datos del Tutor */}
+                {esMenor && (
+                  <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 animate-fade-in">
+                    <h3 className="text-lg font-semibold text-indigo-900 border-b border-indigo-200 pb-2 mb-6">Datos del Padre, Madre o Tutor Legal</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Nombre y Apellidos del Tutor *</label>
+                        <input type="text" name="tutorNombre" required={esMenor} value={formData.tutorNombre} onChange={handleChange}
+                          className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">DNI / NIE *</label>
+                        <input type="text" name="tutorDni" required={esMenor} value={formData.tutorDni} onChange={handleChange}
+                          className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono de Contacto (Tutor) *</label>
+                        <input type="tel" name="tutorTelefono" required={esMenor} value={formData.tutorTelefono} onChange={handleChange}
+                          className="w-full p-3 border border-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bloque 4: Preferencias Musicales */}
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-900 border-b border-slate-200 pb-2 mb-6">3. Preferencias Musicales</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Instrumento de Interés</label>
+                      <select name="instrumento" value={formData.instrumento} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white"
+                      >
+                        <option value="">Aún no lo sé / Música y Movimiento</option>
+                        <optgroup label="Viento Madera">
+                          <option value="Flauta Travesera">Flauta Travesera</option>
+                          <option value="Clarinete">Clarinete</option>
+                          <option value="Requinto">Requinto</option>
+                          <option value="Saxofón">Saxofón</option>
+                          <option value="Oboe">Oboe</option>
+                        </optgroup>
+                        <optgroup label="Viento Metal">
+                          <option value="Trompeta">Trompeta</option>
+                          <option value="Trompa">Trompa</option>
+                          <option value="Trombón">Trombón</option>
+                          <option value="Bombardino/Tuba">Bombardino / Tuba</option>
+                        </optgroup>
+                        <optgroup label="Percusión">
+                          <option value="Percusion">Percusión</option>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">¿Tienes experiencia previa?</label>
+                      <select name="experiencia" value={formData.experiencia} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white"
+                      >
+                        <option value="No">No, empiezo desde cero</option>
+                        <option value="Si">Sí, ya sé algo de música</option>
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones (Opcional)</label>
+                      <textarea name="observaciones" rows={3} value={formData.observaciones} onChange={handleChange}
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 resize-none"
+                        placeholder="Cuéntanos si tienes disponibilidad horaria limitada, necesidades especiales, etc."
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloque 5: Protección de Datos */}
+                <div className="mt-8 border-t border-slate-200 pt-8">
+                  <h3 className="text-lg font-semibold text-indigo-900 mb-4">4. Protección de Datos</h3>
+                  
+                  <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-600 h-48 overflow-y-auto mb-4 custom-scrollbar">
+                    <p className="font-bold mb-3 text-slate-800 text-sm">PROTECCIÓN DE DATOS PERSONALES</p>
+                    <p className="mb-3">
+                      De conformidad con lo dispuesto en el Reglamento (UE) 2016/679 General de Protección de Datos (RGPD) y en la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), se informa de lo siguiente:
+                    </p>
+                    <ul className="space-y-3 mb-4">
+                      <li><strong>Responsable del tratamiento:</strong> Agrupación Musical Isorana AMUSIC, con CIF G38047940.</li>
+                      <li><strong>Finalidad:</strong> Los datos personales facilitados mediante este formulario serán tratados con la finalidad de gestionar la preinscripción, inscripción y participación del alumno/a en las actividades formativas de la Academia de la Agrupación Musical Isorana AMUSIC, así como para realizar las comunicaciones necesarias relacionadas con la organización de las clases, horarios, actividades y funcionamiento de la academia.</li>
+                      <li><strong>Legitimación:</strong> El tratamiento de los datos se basa en la aplicación de medidas precontractuales solicitadas por la persona interesada y, en su caso, en la posterior relación derivada de la inscripción del alumno/a, así como en el cumplimiento de las obligaciones legales aplicables.</li>
+                      <li><strong>Conservación:</strong> Los datos se conservarán durante el tiempo necesario para gestionar la preinscripción y, en caso de formalizarse la matrícula, durante el tiempo que se mantenga la relación con la Academia y posteriormente durante los plazos exigidos legalmente.</li>
+                      <li><strong>Destinatarios:</strong> Los datos no serán cedidos a terceros salvo obligación legal o cuando sea necesario para la correcta prestación de los servicios, pudiendo tener acceso a ellos los proveedores que actúen como encargados del tratamiento de la Agrupación.</li>
+                      <li><strong>Derechos:</strong> La persona interesada podrá ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y, cuando proceda, portabilidad de sus datos, dirigiéndose a Agrupación Musical Isorana AMUSIC a través del correo electrónico agrupacionmusicalisorana@gmail.com. Asimismo, podrá presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD).</li>
+                    </ul>
+                    <p className="font-medium text-slate-700">
+                      En el caso de alumnos/as menores de edad, los datos serán facilitados por su padre, madre o representante legal cuando corresponda.
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 bg-indigo-50/30 p-4 rounded-xl border border-indigo-50">
+                    <input 
+                      type="checkbox" 
+                      id="aceptaPrivacidad" 
+                      required
+                      checked={aceptaPrivacidad} 
+                      onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+                      className="mt-1 w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer flex-shrink-0"
+                    />
+                    <label htmlFor="aceptaPrivacidad" className="text-sm font-medium text-slate-700 cursor-pointer">
+                      He leído y acepto la política de privacidad y el tratamiento de mis datos personales (y los del menor a mi cargo, si procede) para la gestión de esta solicitud. *
+                    </label>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={enviando}
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+                >
+                  {enviando ? 'Enviando solicitud...' : 'Enviar Preinscripción'}
+                </button>
+              </form>
+            </>
+          )}
+
         </div>
       </section>
 

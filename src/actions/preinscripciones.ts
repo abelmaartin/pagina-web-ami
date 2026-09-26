@@ -7,6 +7,12 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY_INSCRIPCION);
 
 export async function registrarPreinscripcion(data: any) {
+
+  const limite = new Date('2026-09-26T23:59:59');
+  if (new Date() > limite) {
+    return { success: false, error: 'El plazo de inscripción ha finalizado.' };
+  }
+
   try {
     // 1. Guardar en la base de datos de Prisma
     await prisma.preinscripcion.create({
